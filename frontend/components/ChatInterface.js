@@ -1,12 +1,87 @@
 export class ChatInterface {
     constructor(container) {
         this.container = container;
-        this.messages = [];
+        this.chatHistories = {};  // Separate history for each therapist
+        this.currentTherapist = null;
         this.isLoading = false;
+        this.therapists = [];
         this.initialize();
     }
 
-    initialize() {
+    async initialize() {
+        // Fetch therapists first
+        try {
+            const response = await fetch('http://localhost:5001/api/therapists');
+            const data = await response.json();
+            this.therapists = data.therapists;
+            this.showTherapistList();
+        } catch (error) {
+            console.error('Error fetching therapists:', error);
+        }
+    }
+
+    showTherapistList() {
+        this.container.innerHTML = `
+            <div class="chat-container">
+                <header class="chat-header">
+                    <div class="header-content">
+                        <div class="header-title">
+                            <h1>Chats</h1>
+                        </div>
+                        <div class="edit-button">Edit</div>
+                    </div>
+                </header>
+
+                <div class="search-container">
+                    <div class="search-bar">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" placeholder="Search" disabled>
+                    </div>
+                </div>
+
+                <div class="therapist-list">
+                    ${this.therapists.map(therapist => this.renderTherapistListItem(therapist)).join('')}
+                </div>
+
+                <footer class="chat-footer">
+                    <p>Select a therapist to begin your conversation.</p>
+                </footer>
+            </div>
+        `;
+
+        // Add click handlers for therapist selection
+        this.therapists.forEach(therapist => {
+            const element = document.querySelector(`[data-therapist-id="${therapist.id}"]`);
+            if (element) {
+                element.addEventListener('click', () => this.selectTherapist(therapist));
+            }
+        });
+    }
+
+    renderTherapistListItem(therapist) {
+        return `
+            <div class="therapist-item" data-therapist-id="${therapist.id}">
+                <div class="therapist-avatar">
+                    ${this.getTherapistIcon(therapist.id)}
+                </div>
+                <div class="therapist-info">
+                    <h2>${therapist.name}</h2>
+                    <p>${this.getTherapistPreview(therapist.id)}</p>
+                </div>
+                <div class="chevron">›</div>
+            </div>
+        `;
+    }
+
+    selectTherapist(therapist) {
+        this.currentTherapist = therapist;
+        if (!this.chatHistories[therapist.id]) {
+            this.chatHistories[therapist.id] = [];
+        }
+        this.showChat();
+    }
+
+    showChat() {
         this.container.innerHTML = `
             <div class="chat-container">
                 <header class="chat-header">
@@ -17,17 +92,11 @@ export class ChatInterface {
                         <div class="header-title">
                             <div class="contact-info">
                                 <div class="contact-photo">
-                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <circle cx="12" cy="12" r="5" fill="#FDB813"/>
-                                        <path d="M12 4V6M12 18V20M4 12H6M18 12H20M6.34 6.34L7.76 7.76M16.24 16.24L17.66 17.66M17.66 6.34L16.24 7.76M7.76 16.24L6.34 17.66" 
-                                              stroke="#FDB813" 
-                                              strokeWidth="2.5" 
-                                              strokeLinecap="round"/>
-                                    </svg>
+                                    ${this.getTherapistIcon(this.currentTherapist.id)}
                                 </div>
                                 <div class="title-text">
-                                    <h1>Dawn</h1>
-                                    <p class="header-subtitle">Every day brings new clarity</p>
+                                    <h1>${this.currentTherapist.name}</h1>
+                                    <p class="header-subtitle">${this.currentTherapist.subtitle}</p>
                                 </div>
                             </div>
                         </div>
@@ -35,21 +104,7 @@ export class ChatInterface {
                 </header>
 
                 <div class="chat-messages" id="chat-messages">
-                    <div class="welcome-message">
-                        <div class="message-icon">👋</div>
-                        <p>Hi! I'm here to chat and support you. You can start with something like:</p>
-                        <div class="examples-container">
-                            <div class="example-message">
-                                I've been feeling overwhelmed at work lately...
-                            </div>
-                            <div class="example-message">
-                                I need help working through a difficult decision...
-                            </div>
-                            <div class="example-message">
-                                Could we have a casual chat? I just need someone to listen...
-                            </div>
-                        </div>
-                    </div>
+                    ${this.chatHistories[this.currentTherapist.id].length === 0 ? this.getWelcomeMessage() : ''}
                 </div>
 
                 <div class="chat-input-container">
@@ -69,65 +124,63 @@ export class ChatInterface {
             </div>
         `;
 
-        // Add styles specific to examples
-        const styleSheet = document.createElement("style");
-        styleSheet.textContent = `
-            .welcome-message {
-                text-align: center;
-                color: #666;
-                margin: auto;
-                max-width: 90%;
-            }
+        // Restore chat history
+        const messagesContainer = document.getElementById('chat-messages');
+        this.chatHistories[this.currentTherapist.id].forEach(message => {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${message.role}-message`;
+            messageElement.textContent = message.content;
+            messagesContainer.appendChild(messageElement);
+        });
 
-            .welcome-message p {
-                margin: 12px 0;
-                font-size: 15px;
-            }
-
-            .examples-container {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                margin-top: 16px;
-            }
-
-            .example-message {
-                background: #f5f5f5;
-                padding: 12px 16px;
-                border-radius: 8px;
-                font-size: 14px;
-                color: #555;
-                cursor: pointer;
-                transition: background-color 0.2s;
-                text-align: left;
-                border-left: 3px solid #007AFF;
-            }
-
-            .example-message:hover {
-                background: #e8e8e8;
-            }
-
-            .message-icon {
-                font-size: 32px;
-                margin-bottom: 12px;
-                animation: wave 1s ease-in-out;
-            }
-
-            @keyframes wave {
-                0% { transform: rotate(0deg); }
-                25% { transform: rotate(-20deg); }
-                50% { transform: rotate(0deg); }
-                75% { transform: rotate(20deg); }
-                100% { transform: rotate(0deg); }
-            }
-        `;
-        document.head.appendChild(styleSheet);
-
-        this.messagesContainer = document.getElementById('chat-messages');
+        // Setup event listeners
+        this.messagesContainer = messagesContainer;
         this.input = document.getElementById('chat-input');
         this.sendButton = document.getElementById('send-button');
-
+        
         this.setupEventListeners();
+    }
+
+    getTherapistPreview(therapistId) {
+        const previews = {
+            dawn: "Guides conversations through brief, caring\nmessages while asking gentle questions\nto help people find their own path forward.",
+            alex: "Teaches you to spot unhelpful thoughts \nand replace them with better ones to\nimprove your mood and actions.",
+            maya: "Explores how your past experiences\nshape your present life to help you grow\nand understand yourself.",
+            james: "Creates a warm, accepting space\nwhere you can share openly while being\nsupported in your personal growth.",
+            sarah: "Combines mindfulness with practical skills\nto help you handle emotions, stress, and\nrelationships better."
+        };
+        return previews[therapistId];
+    }
+
+    getTherapistIcon(therapistId) {
+        const icons = {
+            dawn: '💜',
+            alex: '🧡',
+            maya: '💛',
+            james: '💚',
+            sarah: '💙'
+        };
+        return icons[therapistId] || '👤';  // Default fallback icon
+    }
+
+    getWelcomeMessage() {
+        return `
+            <div class="welcome-message">
+                <div class="message-icon">👋</div>
+                <p>Hi! I'm ${this.currentTherapist.name}. I'm here to chat and support you. You can start with something like:</p>
+                <div class="examples-container">
+                    <div class="example-message">
+                        I've been feeling overwhelmed at work lately...
+                    </div>
+                    <div class="example-message">
+                        I need help working through a difficult decision...
+                    </div>
+                    <div class="example-message">
+                        Could we have a casual chat? I just need someone to listen...
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     setupEventListeners() {
@@ -138,6 +191,12 @@ export class ChatInterface {
                 this.handleSend();
             }
         });
+
+        // Add back button handler
+        const backButton = document.querySelector('.back-button');
+        if (backButton) {
+            backButton.addEventListener('click', () => this.showTherapistList());
+        }
 
         // Add click handlers for example messages
         document.querySelectorAll('.example-message').forEach(example => {
@@ -184,7 +243,8 @@ export class ChatInterface {
                 },
                 body: JSON.stringify({
                     message: message,
-                    history: this.messages
+                    therapist_id: this.currentTherapist.id,
+                    history: this.chatHistories[this.currentTherapist.id]
                 })
             });
 
@@ -202,7 +262,7 @@ export class ChatInterface {
     }
 
     addMessage(role, content) {
-        this.messages.push({ role, content });
+        this.chatHistories[this.currentTherapist.id].push({ role, content });
         
         const messageElement = document.createElement('div');
         messageElement.className = `message ${role}-message`;

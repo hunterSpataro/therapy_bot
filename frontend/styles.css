@@ -1,4 +1,4 @@
-/* styles.css */
+/* Base styles */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -14,6 +14,7 @@ body {
     justify-content: center;
 }
 
+/* Container styles */
 .chat-container {
     width: 100%;
     max-width: 800px;
@@ -26,6 +27,7 @@ body {
     overflow: hidden;
 }
 
+/* Header styles */
 .chat-header {
     padding: 12px 16px;
     background: linear-gradient(to bottom, #ffffff, #f8f8f8);
@@ -42,6 +44,121 @@ body {
     position: relative;
 }
 
+.header-title {
+    flex: 1;
+    text-align: center;
+}
+
+.header-title h1 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: #1a1a1a;
+}
+
+/* Search bar styles */
+.search-container {
+    padding: 10px 16px;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.search-bar {
+    background-color: #e4e4e4;
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-bar input {
+    background: none;
+    border: none;
+    flex: 1;
+    font-size: 14px;
+    color: #1a1a1a;
+}
+
+.search-bar input:focus {
+    outline: none;
+}
+
+.search-icon {
+    color: #8e8e93;
+    font-size: 14px;
+}
+
+/* Edit button */
+.edit-button {
+    color: #007AFF;
+    font-size: 14px;
+    cursor: pointer;
+    position: absolute;
+    right: 16px;
+}
+
+/* Therapist list styles */
+.therapist-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.therapist-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.therapist-item:hover {
+    background-color: #f5f5f5;
+}
+
+.therapist-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #FFF8F5;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.therapist-avatar svg {
+    width: 48px;
+    height: 48px;
+}
+
+.therapist-info {
+    flex: 1;
+}
+
+.therapist-info h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.therapist-info p {
+    font-size: 14px;
+    color: #666;
+    margin: 4px 0 0 0;
+    white-space: pre-line;
+}
+
+.chevron {
+    color: #c7c7cc;
+    font-size: 20px;
+    margin-left: 8px;
+}
+
+/* Back button styles */
 .back-button {
     position: absolute;
     left: 0;
@@ -63,11 +180,7 @@ body {
     line-height: 1;
 }
 
-.header-title {
-    flex: 1;
-    text-align: center;
-}
-
+/* Contact info styles */
 .contact-info {
     display: flex;
     align-items: center;
@@ -98,13 +211,6 @@ body {
     gap: 2px;
 }
 
-.chat-header h1 {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0;
-    color: #1a1a1a;
-}
-
 .header-subtitle {
     font-size: 12px;
     color: #666666;
@@ -112,6 +218,7 @@ body {
     font-weight: 400;
 }
 
+/* Chat messages styles */
 .chat-messages {
     flex: 1;
     overflow-y: auto;
@@ -169,14 +276,6 @@ body {
     animation: wave 1s ease-in-out;
 }
 
-@keyframes wave {
-    0% { transform: rotate(0deg); }
-    25% { transform: rotate(-20deg); }
-    50% { transform: rotate(0deg); }
-    75% { transform: rotate(20deg); }
-    100% { transform: rotate(0deg); }
-}
-
 .message {
     max-width: 80%;
     padding: 12px 16px;
@@ -201,6 +300,7 @@ body {
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
+/* Chat input styles */
 .chat-input-container {
     padding: 16px;
     border-top: 1px solid #e0e0e0;
@@ -258,11 +358,7 @@ body {
     animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
+/* Footer styles */
 .chat-footer {
     padding: 12px 20px;
     text-align: center;
@@ -270,4 +366,18 @@ body {
     color: #666;
     background: #f8f8f8;
     border-top: 1px solid #eee;
+}
+
+/* Animations */
+@keyframes wave {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-20deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(20deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
