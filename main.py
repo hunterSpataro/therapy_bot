@@ -10,10 +10,7 @@ app.secret_key = secrets.token_hex(16)
 
 # Configure CORS to accept requests from all expected origins
 ALLOWED_ORIGINS = [
-    'http://localhost:5000',                           # Local development
-    'http://localhost:3000',                           # Alternative local development
-    'https://hunterspataro.github.io',                # Your GitHub Pages domain
-    'https://hunterspataro.github.io/therapy_bot/'
+    'https://hunterspataro.github.io',
 ]
 
 CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
