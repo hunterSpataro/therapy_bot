@@ -1,7 +1,5 @@
-const config = {
-    API_URL: process.env.NODE_ENV === 'production' 
-        ? 'https://your-render-service-name.onrender.com'  // Replace with your Render URL
-        : 'http://localhost:5001'
-};
+const API_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:5001'
+    : 'https://therapy-chat-backend.onrender.com';  // Your Render backend URL
 
-export default config;
+export { API_URL };
