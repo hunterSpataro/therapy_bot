@@ -13,6 +13,7 @@ ALLOWED_ORIGINS = [
     'http://localhost:5000',                           # Local development
     'http://localhost:3000',                           # Alternative local development
     'https://hunterspataro.github.io',                # Your GitHub Pages domain
+    'https://hunterspataro.github.io/therapy_bot/'
 ]
 
 CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
