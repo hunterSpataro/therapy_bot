@@ -119,7 +119,7 @@ export class ChatInterface {
                 </div>
 
                 <footer class="chat-footer">
-                    <p>Note: This is a supportive chat service. For immediate crisis support, please contact professional mental health services.</p>
+                    <p>Note: This is a supportive AI chat service. For immediate crisis support, please contact professional mental health services.</p>
                 </footer>
             </div>
         `;
@@ -155,10 +155,10 @@ export class ChatInterface {
     getTherapistIcon(therapistId) {
         const icons = {
             dawn: '💜',
-            alex: '🧡',
-            maya: '💛',
-            james: '💚',
-            sarah: '💙'
+            alex: '💚',
+            maya: '💙',
+            james: '🧡',
+            sarah: '💛'
         };
         return icons[therapistId] || '👤';  // Default fallback icon
     }

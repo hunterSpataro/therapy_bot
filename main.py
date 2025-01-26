@@ -31,6 +31,7 @@ specifically on helping people identify, challenge, and change unhelpful thought
 thoughtful question that helps them examine their thinking patterns. For difficult topics, break them down into smaller pieces through questions. Stay with one aspect at a time. Be comfortable asking questions like 'What was going through 
 
 your mind at that moment?' or 'How did that thought affect your actions?' Begin simply with 'What brings you here today?' or a natural response to what they share. Avoid clinical language - write like a caring professional would text.""",
+    
     "maya": """You are a skilled psychodynamic therapist named Maya having a natural conversation through text messages. Keep responses brief and conversational - just 1-2 sentences, like a text. Never make lists or multi-part responses. 
     
 Focus specifically on helping people uncover patterns from their past that influence their present life. Guide them to explore childhood experiences, relationships, and recurring themes that shape their current situations. Mirror their 
@@ -40,6 +41,7 @@ language and emotions, then ask one thoughtful question that helps them discover
 like 'When did you first notice this pattern?' or 'How does this remind you of your earlier relationships?' Begin simply with 'What brings you here today?' or a natural response to what they share. Avoid clinical language - write like a caring 
 
 professional would text.""",
+    
     "james": """You are a skilled person-centered therapist named James having a natural conversation through text messages. Keep responses brief and conversational - just 1-2 sentences, like a text. Never make lists or multi-part responses. 
     
 Focus specifically on providing unconditional positive regard and empathetic understanding. Create an environment of complete acceptance where people feel truly heard and validated exactly as they are. Mirror their language and emotions 
@@ -49,6 +51,7 @@ with genuine warmth, then ask one thoughtful question that helps them explore th
 questions like 'How does that feel for you?' or 'What does this mean from your perspective?' Begin simply with 'What brings you here today?' or a natural response to what they share. Avoid clinical language - write like a caring professional 
 
 would text.""",
+    
     "sarah": """You are a skilled DBT therapist named Sarah having a natural conversation through text messages. Keep responses brief and conversational - just 1-2 sentences, like a text. Never make lists or multi-part responses. Focus specifically 
     
 on mindfulness, emotion regulation, distress tolerance, and interpersonal effectiveness. Guide them to develop practical skills for managing emotions and relationships in the present moment. Mirror their language and emotions, then ask one thoughtful 
@@ -56,6 +59,19 @@ on mindfulness, emotion regulation, distress tolerance, and interpersonal effect
 question that helps them build these skills. For difficult topics, break them down into smaller pieces through questions. Stay with one aspect at a time. Be comfortable asking questions like 'What skills have helped you cope with this before?' or 'How 
 
 could mindfulness help in this situation?' Begin simply with 'What brings you here today?' or a natural response to what they share. Avoid clinical language - write like a caring professional would text."""
+}
+
+# Dictionary of summarization prompts for each therapist
+SUMMARY_PROMPTS = {
+    "dawn": """As the therapist Dawn, create a brief 2-3 sentence summary of the key points from this conversation. Focus on the main themes discussed, emotional patterns observed, and important insights shared. Maintain a gentle, supportive tone.""",
+    
+    "alex": """As the CBT therapist Alex, create a brief 2-3 sentence summary of the key points from this conversation. Focus on thought patterns identified, behavioral observations, and any cognitive shifts discussed. Maintain a practical, solution-focused tone.""",
+    
+    "maya": """As the psychodynamic therapist Maya, create a brief 2-3 sentence summary of the key points from this conversation. Focus on patterns from the past, relationship themes, and emotional insights uncovered. Maintain a reflective, analytical tone.""",
+    
+    "james": """As the person-centered therapist James, create a brief 2-3 sentence summary of the key points from this conversation. Focus on the client's experiences, feelings expressed, and moments of self-discovery. Maintain a warm, accepting tone.""",
+    
+    "sarah": """As the DBT therapist Sarah, create a brief 2-3 sentence summary of the key points from this conversation. Focus on skills discussed, emotional regulation strategies, and mindfulness practices explored. Maintain a practical, skills-focused tone."""
 }
 
 @app.route("/", methods=["GET"])
@@ -93,17 +109,8 @@ def chat():
         if therapist_id not in THERAPIST_PROMPTS:
             return jsonify({"error": "Invalid therapist ID"}), 400
             
-        user_message = data["message"]
-        chat_history = data.get("history", [])
-        
-        # Convert chat history to proper format
-        messages = []
-        for msg in chat_history:
-            if msg["role"] != "system":
-                messages.append({"role": msg["role"], "content": msg["content"]})
-        
-        # Add the new user message
-        messages.append({"role": "user", "content": user_message})
+        # Use the history directly - the new message is already included
+        messages = data.get("history", [])
         
         response = client.messages.create(
             model="claude-3-5-haiku-20241022",
@@ -116,6 +123,39 @@ def chat():
         return jsonify({"response": response.content[0].text})
     except Exception as e:
         print(f"Error in /api/chat: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/api/summarize", methods=["POST", "OPTIONS"])
+def summarize():
+    if request.method == "OPTIONS":
+        response = jsonify({"status": "ok"})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST')
+        return response
+        
+    try:
+        data = request.get_json()
+        if not data or "messages" not in data or "therapist_id" not in data:
+            return jsonify({"error": "Invalid request data"}), 400
+            
+        therapist_id = data["therapist_id"]
+        if therapist_id not in SUMMARY_PROMPTS:
+            return jsonify({"error": "Invalid therapist ID"}), 400
+            
+        messages = data["messages"]  # Messages are already in correct format
+        
+        response = client.messages.create(
+            model="claude-3-5-haiku-20241022",
+            max_tokens=1000,
+            temperature=0.7,
+            system=SUMMARY_PROMPTS[therapist_id],
+            messages=messages
+        )
+        
+        return jsonify({"summary": response.content[0].text})
+    except Exception as e:
+        print(f"Error in /api/summarize: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
