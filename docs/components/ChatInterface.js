@@ -1,5 +1,9 @@
+// Import configuration for API URL based on environment
+import { API_URL } from '../config.js';
+
 export class ChatInterface {
     constructor(container) {
+        // Initialize core properties
         this.container = container;
         this.chatHistories = {};  // Separate history for each therapist
         this.currentTherapist = null;
@@ -9,15 +13,28 @@ export class ChatInterface {
     }
 
     async initialize() {
-        // Fetch therapists first
+        // Fetch available therapists from the backend
         try {
-            const response = await fetch('http://localhost:5001/api/therapists');
+            const response = await fetch(`${API_URL}/api/therapists`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const data = await response.json();
             this.therapists = data.therapists;
             this.showTherapistList();
         } catch (error) {
             console.error('Error fetching therapists:', error);
+            this.handleError('Failed to load therapists. Please refresh the page.');
         }
+    }
+
+    handleError(message) {
+        // Display error message to user
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.style.cssText = 'color: red; padding: 20px; text-align: center;';
+        errorDiv.textContent = message;
+        this.container.appendChild(errorDiv);
     }
 
     showTherapistList() {
@@ -139,6 +156,7 @@ export class ChatInterface {
         this.sendButton = document.getElementById('send-button');
         
         this.setupEventListeners();
+        this.scrollToBottom();
     }
 
     getTherapistPreview(therapistId) {
@@ -184,7 +202,10 @@ export class ChatInterface {
     }
 
     setupEventListeners() {
+        // Send button click handler
         this.sendButton.addEventListener('click', () => this.handleSend());
+        
+        // Enter key handler (without shift)
         this.input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -192,13 +213,13 @@ export class ChatInterface {
             }
         });
 
-        // Add back button handler
+        // Back button handler
         const backButton = document.querySelector('.back-button');
         if (backButton) {
             backButton.addEventListener('click', () => this.showTherapistList());
         }
 
-        // Add click handlers for example messages
+        // Example message click handlers
         document.querySelectorAll('.example-message').forEach(example => {
             example.addEventListener('click', () => {
                 this.input.value = example.textContent.trim();
@@ -236,7 +257,7 @@ export class ChatInterface {
         this.addMessage('user', message);
 
         try {
-            const response = await fetch('http://localhost:5001/api/chat', {
+            const response = await fetch(`${API_URL}/api/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -262,8 +283,10 @@ export class ChatInterface {
     }
 
     addMessage(role, content) {
+        // Add message to history
         this.chatHistories[this.currentTherapist.id].push({ role, content });
         
+        // Create and append message element
         const messageElement = document.createElement('div');
         messageElement.className = `message ${role}-message`;
         messageElement.textContent = content;
